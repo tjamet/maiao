@@ -41,7 +41,7 @@ jobs:
       with:
         token: ${{ steps.app-token.outputs.token }}
     - name: "Configure Git user"
-      run:
+      run: |
         git config --global user.name "Maiao Release Bot"
         git config --global user.email "noreply@adevinta.users.github.com"
         git config --global core.commentChar ";"
