@@ -9,10 +9,51 @@ on:
 
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
+    - name: "Checkout repository"
+      uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21
+    - name: "Install golangci-lint"
+      uses: actions-go/go-install@main
+      with:
+        go-version: 1.21
+        module: "github.com/axw/gocov/gocov@latest"
+    - name: "Install gocov-xml"
+      uses: actions-go/go-install@main
+      with:
+        go-version: 1.21
+        module: "github.com/AlekSi/gocov-xml@latest"
+    - name: "Install go-junit-report"
+      uses: actions-go/go-install@main
+      with:
+        go-version: 1.21
+        module: "github.com/jstemmer/go-junit-report@latest"
+    - name: "Run tests"
+      run: |
+        export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+        go test -v ./... -cover -covermode=count -coverprofile=profile.cov | tee /dev/stderr | go-junit-report > junit.xml
+        gocov convert profile.cov | gocov-xml > coverage.xml
+
+  build:
+    strategy:
+      matrix:
+        include:
+        - runs-on: ubuntu-latest
+          os: Linux
+        - runs-on: windows-latest
+          os: windows
+        - runs-on: macos-latest
+          os: Darwin
+
+    runs-on: ${{ matrix.runs-on }}
+    steps:
     - uses: actions/checkout@v2
+      fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v2
@@ -21,8 +62,22 @@ jobs:
 
     - name: Build
       run: |
-        export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-        ./scripts/cibuild
+        function build(){
+          echo "building for os=${3} arch=${2}"
+          env GOARCH=${2} GOOS=${3} go build -o $1 -ldflags "-X github.com/adevinta/maiao/pkg/version.Version=$(git describe --always --tags --dirty)" ./cmd/maiao
+        }
+        build dist/git-review-${{ matrix.os }}-amd64 amd64 ${{ matrix.os }}
+        build dist/git-review-${{ matrix.os }}-arm64 arm64 ${{ matrix.os }}
+        if [[ "${{ matrix.os }}"  != "Darwin" ]]; then
+          build dist/git-review-${{ matrix.os }}-386 386 ${{ matrix.os }}
+          build dist/git-review-${{ matrix.os }}-arm arm ${{ matrix.os }}
+        fi
+        for f in dist/git-review-*; do
+          shasum -a1 ${f} | awk '{print $1}' > ${f}.sha1sum
+          shasum -a256 ${f} | awk '{print $1}' > ${f}.sha256sum
+        done
+        echo "built objects"
+        find dist
     
     - name: Archive binaries
       uses: actions/upload-artifact@v2
