@@ -25,44 +25,38 @@ jobs:
       with:
         files: |
           git-review*
-  autobump:
+  bump-formulae:
+    name: "Bump homebrew formulae version"
     needs: publish
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/homebrew/ubuntu22.04:master
+    runs-on: ubuntu-latest
     steps:
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-        with:
-          core: true
-          cask: false
-          test-bot: false
-
-      - name: Configure Git user
-        uses: Homebrew/actions/git-user-config@master
-        with:
-          username: ${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'BrewTestBot' }}
-
-      - name: Tap homebrew
-        run: |
-          brew tap "${{ github.repository }}" "https://github.com/${{ github.repository }}.git"
-
-      - uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ vars.MAIAO_RELEASE_APP_ID }}
-          private-key: ${{ secrets.PAIAO_RELEASE_SIGNING_KEY }}
-
-      - name: Bump formulae
-        run: |
-          brew bump --open-pr ${{ github.repository }}/maiao  -v --debug
-        env:
-          HOMEBREW_NO_INSTALL_FROM_API: "1"
-          HOMEBREW_DEVELOPER: "1"
-          HOMEBREW_GITHUB_API_TOKEN: "${{ steps.app-token.outputs.token }} }}"
-        # uses: Homebrew/actions/bump-formulae@master
-        # continue-on-error: true
-        # with:
-        #   token: ${{ steps.app-token.outputs.token }}
-        #   formulae: "${{ github.repository }}/maiao"
+    - name: "Get release app token"
+      uses: actions/create-github-app-token@v1
+      id: app-token
+      with:
+        app-id: ${{ vars.MAIAO_RELEASE_APP_ID }}
+        private-key: ${{ secrets.PAIAO_RELEASE_SIGNING_KEY }}
+    - name: "Checkout the repository"
+      uses: actions/checkout@v2
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+    - name: "Configure Git user"
+      run:
+        git config --global user.name "Maiao Release Bot"
+        git config --global user.email "noreply@adevinta.users.github.com"
+        git config --global core.commentChar ";"
+    - name: "Bump in-tree release"
+      run: |
+        sed -i 's,^\([ ]*tag[ ]*:[ ]*"\).*\(".*\)$,\1${{ github.ref_name }}\2,g' HomebrewFormula/maiao.rb
+        sed -i 's,^\([ ]*revision[ ]*:[ ]*"\).*\(".*\)$,\1${{ github.sha }}\2,g' HomebrewFormula/maiao.rb
+        git add HomebrewFormula/maiao.rb
+    - name: "Open pull request"
+      uses: peter-evans/create-pull-request@v3
+      with:
+        token: ${{ steps.app-token.outputs.token }}
+        commit-message: "Bump homebrew formulae version to ${{ github.ref_name }}"
+        title: "Bump homebrew formulae version to ${{ github.ref_name }}"
+        body: |
+          This pull request was automatically created by the Maiao release workflow
+          when the ${{ github.ref_name }} tag was pushed.
+        branch: "bump/homebrew/${{ github.ref_name }}"
