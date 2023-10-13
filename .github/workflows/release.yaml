@@ -59,4 +59,4 @@ jobs:
         continue-on-error: true
         with:
           token: ${{ steps.app-token.outputs.token }}
-          formulae: maiao
+          formulae: "${{ github.repository }}/maiao"
