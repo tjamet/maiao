@@ -55,8 +55,14 @@ jobs:
           private-key: ${{ secrets.PAIAO_RELEASE_SIGNING_KEY }}
 
       - name: Bump formulae
-        uses: Homebrew/actions/bump-formulae@master
-        continue-on-error: true
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          formulae: "${{ github.repository }}/maiao"
+        run: |
+          brew bump --open-pr ${{ github.repository }}/maiao  -v --debug
+        env:
+          HOMEBREW_NO_INSTALL_FROM_API: "1"
+          HOMEBREW_DEVELOPER: "1"
+          HOMEBREW_GITHUB_API_TOKEN: "${{ steps.app-token.outputs.token }} }}"
+        # uses: Homebrew/actions/bump-formulae@master
+        # continue-on-error: true
+        # with:
+        #   token: ${{ steps.app-token.outputs.token }}
+        #   formulae: "${{ github.repository }}/maiao"
