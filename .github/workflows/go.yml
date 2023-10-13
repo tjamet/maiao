@@ -64,14 +64,14 @@ jobs:
     - name: Build
       run: |
         function build(){
-          echo "building for os=${3} arch=${2}"
-          env GOARCH=${2} GOOS=${3} go build -o $1 -ldflags "-X github.com/adevinta/maiao/pkg/version.Version=$(git describe --always --tags --dirty)" ./cmd/maiao
+          echo "building for arch=${2}"
+          env GOARCH=${2} go build -o $1 -ldflags "-X github.com/adevinta/maiao/pkg/version.Version=$(git describe --always --tags --dirty)" ./cmd/maiao
         }
-        build dist/git-review-${{ matrix.os }}-amd64 amd64 ${{ matrix.os }}
-        build dist/git-review-${{ matrix.os }}-arm64 arm64 ${{ matrix.os }}
+        build dist/git-review-${{ matrix.os }}-amd64 amd64
+        build dist/git-review-${{ matrix.os }}-arm64 arm64
         if [[ "${{ matrix.os }}"  != "Darwin" ]]; then
-          build dist/git-review-${{ matrix.os }}-386 386 ${{ matrix.os }}
-          build dist/git-review-${{ matrix.os }}-arm arm ${{ matrix.os }}
+          build dist/git-review-${{ matrix.os }}-386 386
+          build dist/git-review-${{ matrix.os }}-arm arm
         fi
         for f in dist/git-review-*; do
           shasum -a1 ${f} | awk '{print $1}' > ${f}.sha1sum
