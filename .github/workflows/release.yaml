@@ -27,7 +27,6 @@ jobs:
           git-review*
   autobump:
     needs: publish
-    if: github.repository == 'tjamet/maiao'
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/homebrew/ubuntu22.04:master
