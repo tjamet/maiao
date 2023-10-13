@@ -25,3 +25,33 @@ jobs:
       with:
         files: |
           git-review*
+  autobump:
+    needs: publish
+    if: github.repository == 'tjamet/maiao'
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/homebrew/ubuntu22.04:master
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+        with:
+          core: true
+          cask: false
+          test-bot: false
+
+      - name: Configure Git user
+        uses: Homebrew/actions/git-user-config@master
+        with:
+          username: ${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'BrewTestBot' }}
+
+      - name: Tap homebrew
+        run: |
+          brew tap "${{ github.repository }}" "https://github.com/${{ github.repository }}.git"
+
+      - name: Bump formulae
+        uses: Homebrew/actions/bump-formulae@master
+        continue-on-error: true
+        with:
+          token: ${{ secrets.HOMEBREW_CORE_REPO_WORKFLOW_TOKEN }}
+          formulae: ${{ github.event.inputs.formulae || env.FORMULAE }}

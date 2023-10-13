@@ -1,12 +1,12 @@
 class Maiao < Formula
   desc "Seamless GitHub PR management from the command-line"
-  homepage "https://github.com/adevinta/maiao"
-  url "https://github.com/adevinta/maiao.git",
+  homepage "https://github.com/tjamet/maiao"
+  url "https://github.com/tjamet/maiao.git",
     tag:      "1.1.0",
     revision: "a105d869324d20a9c94081cb0f03149a743e184b"
   license "MIT"
   conflicts_with "git-review"
-  head "https://github.com/adevinta/maiao.git",
+  head "https://github.com/tjamet/maiao.git",
     branch: "main"
 
   depends_on "go" => :build
