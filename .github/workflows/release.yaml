@@ -11,7 +11,7 @@ on:
 jobs:
 
   call-build:
-    uses: "${{ github.repository }}/.github/workflows/go.yml@main"
+    uses: "./.github/workflows/go.yml"
 
   publish:
     runs-on: ubuntu-latest
