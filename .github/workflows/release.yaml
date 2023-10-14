@@ -11,7 +11,7 @@ on:
 jobs:
 
   call-build:
-    uses: adevinta/maiao/.github/workflows/go.yml@main
+    uses: ${{ github.repository }}/.github/workflows/go.yml@${{ github.ref_name }}
 
   publish:
     runs-on: ubuntu-latest
