@@ -60,3 +60,4 @@ jobs:
           This pull request was automatically created by the Maiao release workflow
           when the ${{ github.ref_name }} tag was pushed.
         branch: "bump/homebrew/${{ github.ref_name }}"
+        base: main
