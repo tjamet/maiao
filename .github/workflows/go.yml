@@ -45,7 +45,7 @@ jobs:
         include:
         - runs-on: ubuntu-latest
           os: Linux
-        - runs-on: windows-latest
+        - runs-on: ubuntu-latest
           os: windows
         - runs-on: macos-latest
           os: Darwin
@@ -64,6 +64,9 @@ jobs:
     - name: Build
       shell: bash
       run: |
+        if [[ "${{ matrix.os }}"  == "windows" ]]; then
+          export GOOS=windows
+        fi
         function build(){
           echo "building for arch=${2}"
           env GOARCH=${2} go build -o $1 -ldflags "-X github.com/adevinta/maiao/pkg/version.Version=$(git describe --always --tags --dirty)" ./cmd/maiao
